@@ -40,6 +40,10 @@ export default {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+        pink: { // Added for Draw module
+          '500': '#ec4899', // Example pink color
+          '600': '#db2777',
+        },
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
