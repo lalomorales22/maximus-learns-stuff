@@ -1,8 +1,12 @@
 // src/components/draw/drawing-canvas.tsx
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
+
+export interface DrawingCanvasHandle {
+  clear: () => void;
+}
 
 interface DrawingCanvasProps {
   width: number;
@@ -10,30 +14,52 @@ interface DrawingCanvasProps {
   selectedColor: string;
   brushSize: number;
   onDraw: () => void; // Callback when drawing occurs
+  onDrawStart?: () => void; // Callback when drawing starts
+  onDrawEnd?: () => void; // Callback when drawing ends
   className?: string;
 }
 
-export function DrawingCanvas({
+export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(({
   width,
   height,
   selectedColor,
   brushSize,
   onDraw,
+  onDrawStart,
+  onDrawEnd,
   className,
-}: DrawingCanvasProps) {
+}, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
+
+  const clearCanvas = useCallback(() => {
+    if (context) {
+      context.fillStyle = 'white';
+      context.fillRect(0, 0, width, height);
+    } else if (canvasRef.current) {
+      // Fallback if context might not be set yet but canvas element exists
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+  }, [context, width, height]);
+
+  useImperativeHandle(ref, () => ({
+    clear: clearCanvas,
+  }));
 
   useEffect(() => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (ctx) {
+        setContext(ctx);
         // Initialize canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, width, height);
-        setContext(ctx);
       }
     }
   }, [width, height]);
@@ -52,6 +78,8 @@ export function DrawingCanvas({
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     if ('touches' in event) {
+      // Check if touches array is empty
+      if (event.touches.length === 0) return null;
       return {
         x: event.touches[0].clientX - rect.left,
         y: event.touches[0].clientY - rect.top,
@@ -69,36 +97,28 @@ export function DrawingCanvas({
     context.beginPath();
     context.moveTo(coords.x, coords.y);
     setIsDrawing(true);
-  }, [context]);
+    onDrawStart?.();
+  }, [context, onDrawStart]);
 
   const draw = useCallback((event: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || !context) return;
+    // Prevent default scroll behavior on touch devices during draw
+    if (event.cancelable && 'touches' in event) {
+        event.preventDefault();
+    }
     const coords = getCoordinates(event);
     if (!coords) return;
     context.lineTo(coords.x, coords.y);
     context.stroke();
-    onDraw(); // Notify parent that drawing is happening
+    onDraw(); 
   }, [isDrawing, context, onDraw]);
 
   const stopDrawing = useCallback(() => {
     if (!context) return;
     context.closePath();
     setIsDrawing(false);
-  }, [context]);
-
-  // Clear canvas function, exposed via ref if needed or called internally
-  const clearCanvas = () => {
-    if (context) {
-      context.fillStyle = 'white';
-      context.fillRect(0, 0, width, height);
-    }
-  };
-  
-  // Expose clearCanvas via ref if DrawingCanvas is used in DrawModule like:
-  // const canvasApiRef = useRef<{ clear: () => void }>(null);
-  // <DrawingCanvas ref={canvasApiRef} ... />
-  // Then parent can call canvasApiRef.current?.clear();
-  // For now, we'll make it callable via prop in DrawModule directly for simplicity
+    onDrawEnd?.();
+  }, [context, onDrawEnd]);
 
   return (
     <canvas
@@ -108,17 +128,17 @@ export function DrawingCanvas({
       onMouseDown={startDrawing}
       onMouseMove={draw}
       onMouseUp={stopDrawing}
-      onMouseLeave={stopDrawing} // Stop drawing if mouse leaves canvas
-      onTouchStart={startDrawing}
+      onMouseLeave={stopDrawing}
+      onTouchStart={(e) => {
+        if (e.cancelable) e.preventDefault(); // Prevent scrolling when touch starts on canvas
+        startDrawing(e);
+      }}
       onTouchMove={draw}
       onTouchEnd={stopDrawing}
-      className={cn("border-4 border-primary rounded-2xl shadow-lg bg-white cursor-crosshair touch-none", className)}
-      style={{ touchAction: 'none' }} // Prevents page scroll on touch devices
+      className={cn("border-4 border-primary rounded-2xl shadow-lg bg-white cursor-crosshair", className)}
+      style={{ touchAction: 'none' }} // Explicitly disable browser touch actions
     />
   );
-}
+});
 
-// Helper for DrawModule to use clearCanvas if needed
-export interface DrawingCanvasHandle {
-  clear: () => void;
-}
+DrawingCanvas.displayName = 'DrawingCanvas';
