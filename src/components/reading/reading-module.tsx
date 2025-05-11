@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -9,6 +10,7 @@ import { adjustReadingDifficulty as adjustReadingDifficultyAI } from '@/ai/flows
 import { BookOpen, Zap, RefreshCw } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from '@/components/ui/progress';
+import { Label } from "@/components/ui/label";
 
 export function ReadingModule() {
   const [currentPassage, setCurrentPassage] = useState<string>('');
@@ -94,11 +96,14 @@ export function ReadingModule() {
   useEffect(() => {
     // This effect ensures that if difficulty changes, loadNewPassage is called.
     // It's separated from the initial load to avoid issues with timer clearing.
-    if (passagesRead > 0) { // Avoid running on initial mount if already handled
+    // We only want this to run *after* the initial load, hence passagesRead > 0 check was problematic.
+    // The key is to only re-run loadNewPassage if difficulty *actually changes* after the first load.
+    const isInitialLoad = passagesRead <= 1; // Or similar logic if passagesRead starts at 0 or 1
+    if (!isInitialLoad) {
         loadNewPassage(difficulty);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [difficulty, loadNewPassage, passagesRead > 0]);
+  }, [difficulty]); // Rerun when difficulty changes. loadNewPassage is memoized.
 
 
   if (!currentPassage && !isLoading) {
@@ -142,7 +147,8 @@ export function ReadingModule() {
           </Button>
         </CardFooter>
       </Card>
-       <p className="text-sm text-muted-foreground mt-4">Passages read this session: {passagesRead-1}</p>
+       <p className="text-sm text-muted-foreground mt-4">Passages read this session: {passagesRead > 0 ? passagesRead-1 : 0}</p>
     </div>
   );
 }
+
