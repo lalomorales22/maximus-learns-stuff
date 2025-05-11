@@ -4,17 +4,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScoreDisplay } from '@/components/game/score-display';
+import { AnimatedScoreDisplay } from '@/components/game/animated-score-display';
 import { generateReadingPassage } from '@/lib/game-utils';
 import { adjustReadingDifficulty as adjustReadingDifficultyAI } from '@/ai/flows/adaptive-reading';
 import { BookOpen, Zap, RefreshCw } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from '@/components/ui/progress';
 import { Label } from "@/components/ui/label";
+import { useScore } from '@/contexts/ScoreContext';
 
 export function ReadingModule() {
   const [currentPassage, setCurrentPassage] = useState<string>('');
-  const [score, setScore] = useState<number>(0);
   const [difficulty, setDifficulty] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [passagesRead, setPassagesRead] = useState(0);
@@ -22,9 +22,10 @@ export function ReadingModule() {
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
 
   const { toast } = useToast();
+  const { addScore } = useScore();
 
   const loadNewPassage = useCallback((level: number) => {
-    setIsLoading(true); // Set loading true when starting to load
+    setIsLoading(true); 
     setCurrentPassage(generateReadingPassage(level));
     setPassagesRead(prev => prev + 1);
     
@@ -34,23 +35,21 @@ export function ReadingModule() {
       setComprehensionTime(prevTime => (prevTime !== null ? prevTime + 1 : 0));
     }, 1000);
     setTimerId(newTimerId);
-    setIsLoading(false); // Set loading false after passage is set
+    setIsLoading(false);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerId]); // timerId is a dependency for cleanup
+  }, [timerId]); 
 
   useEffect(() => {
-    // Initial load
     loadNewPassage(difficulty);
     return () => {
       if (timerId) clearInterval(timerId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount for initial load triggered by difficulty default.
+  }, []); 
 
    useEffect(() => {
-    // Subsequent loads when difficulty changes
-    if (passagesRead > 0) { // Ensure it's not the initial load
+    if (passagesRead > 0) { 
         loadNewPassage(difficulty);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,19 +60,24 @@ export function ReadingModule() {
     setIsLoading(true);
     if (timerId) clearInterval(timerId);
 
-    const maxTime = 60; // Max seconds for good score (increased for child-friendliness)
+    const maxTime = 60; 
     const timeTaken = comprehensionTime || maxTime;
-    // Adjusted scoring to be more generous
     const simulatedScore = Math.max(0, Math.min(100, (1 - (timeTaken / (maxTime * (difficulty * 0.3 + 1)))) * 120));
     const simulatedCorrectAnswers = Math.round(simulatedScore / 20); 
     const simulatedTotalQuestions = 5;
 
-    setScore(prev => prev + Math.max(5,Math.round(simulatedScore / 10))); // Min 5 points
+    const pointsEarned = Math.max(5,Math.round(simulatedScore / 10)); // Min 5 points
+    addScore(pointsEarned); 
+    toast({
+        title: "Great Reading!",
+        description: `You earned ${pointsEarned} points!`,
+        className: "bg-correct border-correct text-correct-foreground"
+    });
 
     try {
       const aiResponse = await adjustReadingDifficultyAI({
         level: difficulty,
-        score: Math.min(100, simulatedScore), // Cap score at 100 for AI
+        score: Math.min(100, simulatedScore), 
         correctAnswers: simulatedCorrectAnswers,
         totalQuestions: simulatedTotalQuestions,
       });
@@ -86,7 +90,6 @@ export function ReadingModule() {
             className: "bg-secondary text-secondary-foreground border-secondary-darker" 
         });
       } else {
-         // If difficulty is same, manually load new passage.
         loadNewPassage(difficulty);
       }
 
@@ -99,52 +102,49 @@ export function ReadingModule() {
       });
       loadNewPassage(difficulty);
     } 
-    // setIsLoading(false) is handled by loadNewPassage if difficulty doesn't change, or by useEffect if it does.
   };
   
 
-  if (!currentPassage && isLoading) { // Show loading state when actively loading
+  if (!currentPassage && isLoading) { 
     return <div className="text-center p-8 text-2xl font-semibold text-secondary">Fetching a new story... <Zap className="inline-block animate-ping h-8 w-8" /></div>;
   }
-   if (!currentPassage && !isLoading && passagesRead === 0) { // Initial loading before first passage
+   if (!currentPassage && !isLoading && passagesRead === 0) { 
     return <div className="text-center p-8 text-2xl font-semibold text-secondary">Getting ready to read... <Zap className="inline-block animate-ping h-8 w-8" /></div>;
   }
 
-
-  const progressValue = comprehensionTime !== null ? (comprehensionTime / (30 + difficulty * 5)) * 100 : 0; // Timer bar fills slower at higher diff
-
+  const progressValue = comprehensionTime !== null ? (comprehensionTime / (30 + difficulty * 5)) * 100 : 0; 
 
   return (
     <div className="flex flex-col items-center gap-8 p-4 md:p-8">
       <h1 className="text-7xl md:text-9xl font-black my-6 tracking-tighter text-secondary drop-shadow-lg animate-pulse">READ</h1>
-      <ScoreDisplay score={score} title="Reading Score"/>
+      <AnimatedScoreDisplay />
 
-      <Card className="w-full max-w-3xl shadow-xl rounded-2xl"> {/* Increased max-width and roundness */}
+      <Card className="w-full max-w-3xl shadow-xl rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-3xl text-center flex items-center justify-center gap-3 font-bold"><BookOpen className="h-10 w-10"/> Read Aloud!</CardTitle> {/* Larger title and icon */}
+          <CardTitle className="text-3xl text-center flex items-center justify-center gap-3 font-bold"><BookOpen className="h-10 w-10"/> Read Aloud!</CardTitle>
           <CardDescription className="text-center text-lg">Current Reading Level: {difficulty}</CardDescription>
         </CardHeader>
-        <CardContent className="min-h-[250px]"> {/* Increased min-height */}
+        <CardContent className="min-h-[250px]">
           {isLoading ? (
             <div className="text-center py-12">
               <RefreshCw className="h-12 w-12 animate-spin mx-auto text-secondary" />
               <p className="mt-4 text-muted-foreground text-xl">Loading new story...</p>
             </div>
           ) : (
-            <p className="text-2xl md:text-3xl leading-relaxed md:leading-loose text-foreground whitespace-pre-line py-6 px-4 bg-background rounded-xl border-2 border-border shadow-inner"> {/* Larger text, more padding, new style */}
+            <p className="text-2xl md:text-3xl leading-relaxed md:leading-loose text-foreground whitespace-pre-line py-6 px-4 bg-background rounded-xl border-2 border-border shadow-inner">
               {currentPassage}
             </p>
           )}
           {comprehensionTime !== null && !isLoading && (
             <div className="mt-6">
               <Label htmlFor="reading-time" className="text-md text-muted-foreground font-semibold">Reading time progress...</Label>
-              <Progress id="reading-time" value={progressValue} className="w-full h-3 mt-2 rounded-lg" /> {/* Larger progress bar */}
+              <Progress id="reading-time" value={progressValue} className="w-full h-3 mt-2 rounded-lg" />
             </div>
           )}
         </CardContent>
         <CardFooter>
-          <Button onClick={handleNextPassage} className="w-full" disabled={isLoading} size="xl" variant="secondary"> {/* Using new XL size and secondary variant */}
-            {isLoading ? 'Loading...' : 'Next Story'} <RefreshCw className={`ml-3 h-7 w-7 ${isLoading ? 'animate-spin' : ''}`}/> {/* Larger icon */}
+          <Button onClick={handleNextPassage} className="w-full" disabled={isLoading} size="xl" variant="secondary">
+            {isLoading ? 'Loading...' : 'Next Story'} <RefreshCw className={`ml-3 h-7 w-7 ${isLoading ? 'animate-spin' : ''}`}/>
           </Button>
         </CardFooter>
       </Card>
