@@ -73,7 +73,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
           variant={Object.keys(customButtonStyle).length > 0 ? 'default' : buttonVariant} // Use default variant if custom styles are applied, otherwise specific variant
         >
           <Link href={module.path}>
-            Start Learning <ArrowRight className="ml-2 h-6 w-6" />
+            Let's GO! <ArrowRight className="ml-2 h-6 w-6" />
           </Link>
         </Button>
       </CardContent>
