@@ -142,16 +142,19 @@ export function CodingModule() {
             </div>
           </div>
 
-           {/* Simulated Output/Character Area - Basic for now */}
+           {/* Simulated Output/Character Area - Larger Area */}
           <div className="mt-6 p-4 border-2 border-green-400 rounded-lg bg-muted/30 text-center">
              <h4 className={`text-xl font-semibold mb-2 ${CODING_MODULE_COLOR}`}>Program Output (Simulation)</h4>
-             <div className="relative w-32 h-32 bg-white border-2 border-green-700 mx-auto rounded shadow-inner grid place-items-center">
+             <div 
+                className="relative w-full h-64 bg-white border-2 border-green-700 mx-auto rounded shadow-inner grid place-items-center overflow-hidden"
+                aria-label="Character movement area"
+              >
                 <div 
-                    className="w-8 h-8 bg-primary rounded-full shadow-lg" 
-                    style={{ transform: `translate(${characterPosition.x*10}px, ${-characterPosition.y*10}px)`}} // Basic movement effect
+                    className="w-8 h-8 bg-primary rounded-full shadow-lg transition-transform duration-300 ease-linear" 
+                    style={{ transform: `translate(${characterPosition.x*10}px, ${-characterPosition.y*10}px)`}} 
                     title={`Character at X: ${characterPosition.x}, Y: ${characterPosition.y}`}
                 >
-                    <span role="img" aria-label="character" className="text-xl">🤖</span>
+                    <span role="img" aria-label="character" className="text-xl grid place-items-center h-full">🤖</span>
                 </div>
              </div>
              <p className="text-sm text-muted-foreground mt-2">Character Position: X={characterPosition.x}, Y={characterPosition.y}</p>
@@ -165,3 +168,4 @@ export function CodingModule() {
     </div>
   );
 }
+
