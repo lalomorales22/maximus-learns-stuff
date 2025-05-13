@@ -1,4 +1,5 @@
 # Maximus Learns Stuff
+![Screenshot 2025-05-13 at 1 55 38 AM](https://github.com/user-attachments/assets/6be68ab2-883a-48f1-94b5-6848e38457a3)
 
 This is a NextJS starter in Firebase Studio, an educational game application for children aged 6-9, focused on Math, Reading, Typing, Drawing, Coding, and Social Skills.
 
