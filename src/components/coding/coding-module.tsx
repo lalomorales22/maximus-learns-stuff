@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -48,11 +47,15 @@ export function CodingModule() {
 
     // Simulate program execution
     let tempX = 0;
-    let tempY = 0;
-    workspaceBlocks.forEach(block => {
-      if (block.id === 'moveForward') tempY += 1;
-      // Add more logic for other blocks if desired for simulation
-    });
+    // Calculate tempY based on the number of 'moveForward' blocks
+    const numMoveForwardBlocks = workspaceBlocks.filter(block => block.id === 'moveForward').length;
+    let tempY = numMoveForwardBlocks;
+    
+    // Placeholder for other block logic (e.g., turns, loops)
+    // For now, only 'moveForward' affects position.
+    // Example: if implementing 'turnLeft'/'turnRight', you'd need to manage direction state.
+    // Example: if implementing 'repeat2x', you'd iterate through a sub-sequence of blocks.
+
     setCharacterPosition({x: tempX, y: tempY});
 
 
@@ -168,4 +171,3 @@ export function CodingModule() {
     </div>
   );
 }
-
