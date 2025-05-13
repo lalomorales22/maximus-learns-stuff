@@ -20,11 +20,8 @@ export function ModuleCard({ module }: ModuleCardProps) {
   } else if (module.path.includes('reading')) {
     buttonVariant = 'secondary'; // Accent color for reading in theme
   } else if (module.path.includes('typing')) {
-    buttonVariant = 'default'; // Default often maps to primary or a distinct button color
-                               // if secondary used for reading, default might be primary or accent
-                               // let's assume secondary is for orange, accent for purple, primary for blue
-                               // So typing could use accent (purple)
-    customButtonStyle = { backgroundColor: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))' }; // if accent is purple
+    buttonVariant = 'default'; 
+    customButtonStyle = { backgroundColor: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))' }; 
   } else if (module.path.includes('draw')) {
     if (module.themeColor === 'bg-pink-500') { // pink
       customButtonStyle = { backgroundColor: '#ec4899', borderColor: '#db2777' };
@@ -39,7 +36,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
     }
   } else if (module.path.includes('being-nice')) {
     if (module.themeColor === 'bg-yellow-500') { // yellow
-      customButtonStyle = { backgroundColor: '#eab308', borderColor: '#ca8a04', color: 'hsl(var(--primary-foreground))' }; // Added text color for yellow
+      customButtonStyle = { backgroundColor: '#eab308', borderColor: '#ca8a04', color: 'hsl(var(--primary-foreground))' }; 
     } else {
       buttonVariant = 'default';
     }
@@ -51,11 +48,11 @@ export function ModuleCard({ module }: ModuleCardProps) {
       <CardHeader className={`p-0 ${module.themeColor} text-primary-foreground`}>
         <div className="relative w-full h-56">
           <Image
-            src={`https://picsum.photos/seed/${module.name.replace(/\s+/g, '-')}/400/240`}
+            src={module.imageSrc} // Use module.imageSrc for local images
             alt={module.name}
             layout="fill"
             objectFit="cover"
-            data-ai-hint={module.dataAiHint}
+            data-ai-hint={module.dataAiHint} // Keep AI hint for now, or update if image is very specific
           />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4">
              <module.icon className="w-20 h-20 opacity-90" />
@@ -70,7 +67,7 @@ export function ModuleCard({ module }: ModuleCardProps) {
           size="lg"
           className="w-full mt-auto"
           style={customButtonStyle} // Apply custom styles
-          variant={Object.keys(customButtonStyle).length > 0 ? 'default' : buttonVariant} // Use default variant if custom styles are applied, otherwise specific variant
+          variant={Object.keys(customButtonStyle).length > 0 ? 'default' : buttonVariant} 
         >
           <Link href={module.path}>
             Let's GO! <ArrowRight className="ml-2 h-6 w-6" />
@@ -80,4 +77,3 @@ export function ModuleCard({ module }: ModuleCardProps) {
     </Card>
   );
 }
-

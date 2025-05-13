@@ -11,6 +11,7 @@ export type ModuleInfo = {
   description: string;
   dataAiHint: string;
   themeColor: string; // Tailwind bg color class
+  imageSrc: string; // New property for local image paths
 };
 
 // Using Gem or ShieldQuestion as placeholders if specific Fortnite icons are not available
@@ -32,6 +33,7 @@ export const MODULE_DATA: { [key: string]: ModuleInfo } = {
     description: 'Solve math challenges and earn V-Bucks!',
     dataAiHint: 'math blaster game', // Fortnite theme
     themeColor: 'bg-primary',
+    imageSrc: '/images/math.png',
   },
   reading: {
     name: 'Reading Quest',
@@ -40,6 +42,7 @@ export const MODULE_DATA: { [key: string]: ModuleInfo } = {
     description: 'Explore lore and complete reading quests for V-Bucks!',
     dataAiHint: 'treasure map quest', // Fortnite theme
     themeColor: 'bg-accent',
+    imageSrc: '/images/reading.png',
   },
   typing: {
     name: 'Typing Drill',
@@ -48,6 +51,7 @@ export const MODULE_DATA: { [key: string]: ModuleInfo } = {
     description: 'Master the keyboard in typing drills to win V-Bucks!',
     dataAiHint: 'typing race game', // Fortnite theme
     themeColor: 'bg-secondary',
+    imageSrc: '/images/typing.png',
   },
   draw: {
     name: 'Creative Mode',
@@ -55,7 +59,8 @@ export const MODULE_DATA: { [key: string]: ModuleInfo } = {
     icon: Palette,
     description: 'Unleash your inner artist and design for V-Bucks!',
     dataAiHint: 'digital art canvas', // Fortnite theme
-    themeColor: 'bg-pink-500', 
+    themeColor: 'bg-pink-500',
+    imageSrc: '/images/create.png', // Assuming create.pny was a typo for create.png
   },
   coding: {
     name: 'Coding Combat',
@@ -63,7 +68,8 @@ export const MODULE_DATA: { [key: string]: ModuleInfo } = {
     icon: Code2,
     description: 'Learn coding basics with drag & drop blocks and earn V-Bucks!',
     dataAiHint: 'code blocks game', // Fortnite theme
-    themeColor: 'bg-green-500', 
+    themeColor: 'bg-green-500',
+    imageSrc: '/images/coding.png',
   },
   beingNice: {
     name: 'Kindness Arena',
@@ -72,15 +78,15 @@ export const MODULE_DATA: { [key: string]: ModuleInfo } = {
     description: 'Make kind choices in scenarios and spread positivity for V-Bucks!',
     dataAiHint: 'friendship puzzle game', // Fortnite theme
     themeColor: 'bg-yellow-500',
+    imageSrc: '/images/kindness.png',
   },
 };
 
 export const ALL_MODULES: ModuleInfo[] = Object.values(MODULE_DATA);
 
 // V-Bucks related constants
-export const VBUCKS_ICON = Gem; 
-export const VBUCKS_PER_TIER = 100; 
+export const VBUCKS_ICON = Gem;
+export const VBUCKS_PER_TIER = 100;
 export const CURRENCY_NAME = "V-Bucks";
 export const LEVEL_NAME_SINGULAR = "Tier";
 export const LEVEL_NAME_PLURAL = "Tiers";
-

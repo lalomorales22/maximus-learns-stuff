@@ -12,17 +12,15 @@ export default function HomePage() {
         <section className="container mx-auto py-12 px-4 text-center">
            <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl mb-16">
             <Image
-              src="https://picsum.photos/seed/fortnitegame/1200/400" 
-              alt="Epic gaming adventure"
+              src="/images/maximus.png" 
+              alt="Maximus - Epic gaming adventure"
               layout="fill"
               objectFit="cover"
               priority
-              data-ai-hint="victory royale celebration" // Updated AI hint
+              data-ai-hint="victory royale celebration" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col items-center justify-center p-8">
-              <h1 className="text-7xl md:text-9xl font-black mb-6 animate-fade-in-down text-primary-foreground drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]">
-                 {APP_NAME}
-              </h1>
+              {/* Removed h1 with APP_NAME as requested */}
               <p className="text-2xl md:text-3xl text-slate-100 max-w-3xl mx-auto leading-relaxed drop-shadow-md animate-fade-in-up delay-200 font-semibold">
                 Complete missions, level up your Tiers, and earn {CURRENCY_NAME}! Let the adventure begin!
               </p>
@@ -43,4 +41,3 @@ export default function HomePage() {
     </div>
   );
 }
-
