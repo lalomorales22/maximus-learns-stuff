@@ -1,10 +1,11 @@
+
 import { MathModule } from '@/components/math/math-module';
 import type { Metadata } from 'next';
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, MODULE_DATA } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: `Math Adventures - ${APP_NAME}`,
-  description: 'Practice math problems and improve your skills!',
+  title: `${MODULE_DATA.math.name} - ${APP_NAME}`,
+  description: `${MODULE_DATA.math.description}`,
 };
 
 export default function MathPage() {

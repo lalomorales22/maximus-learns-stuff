@@ -1,3 +1,4 @@
+
 // src/components/draw/draw-module.tsx
 "use client";
 
@@ -8,12 +9,14 @@ import { AnimatedScoreDisplay } from '@/components/game/animated-score-display';
 import { DrawingCanvas, type DrawingCanvasHandle } from './drawing-canvas';
 import { ColorPalette } from './color-palette';
 import { BrushSelector } from './brush-selector';
-import { Trash2, Palette as PaletteIcon } from 'lucide-react';
+import { Trash2, Palette as PaletteIcon, Save } from 'lucide-react'; // Added Save icon
 import { useScore } from '@/contexts/ScoreContext';
 import { useToast } from '@/hooks/use-toast';
+import { CURRENCY_NAME } from '@/lib/constants';
 
 const DEFAULT_COLOR = '#000000'; // Black
 const DEFAULT_BRUSH_SIZE = 5;
+const DRAW_MODULE_COLOR = "text-pink-500"; // Specific color for Draw module from constants or globals
 
 export function DrawModule() {
   const [selectedColor, setSelectedColor] = useState<string>(DEFAULT_COLOR);
@@ -24,7 +27,7 @@ export function DrawModule() {
   const canvasRef = useRef<DrawingCanvasHandle>(null);
   const drawingCanvasWrapperRef = useRef<HTMLDivElement>(null);
 
-  const { addScore } = useScore();
+  const { addVBucks } = useScore(); // Changed from addScore
   const { toast } = useToast();
 
   const drawingActivityInterval = useRef<NodeJS.Timeout | null>(null);
@@ -33,8 +36,8 @@ export function DrawModule() {
   useEffect(() => {
     const updateSize = () => {
       if (drawingCanvasWrapperRef.current) {
-        const newWidth = Math.max(300, drawingCanvasWrapperRef.current.offsetWidth - 20); // Adjusted padding consideration
-        const newHeight = Math.max(200, window.innerHeight * 0.55); // Slightly increased height percentage
+        const newWidth = Math.max(300, drawingCanvasWrapperRef.current.offsetWidth - 20);
+        const newHeight = Math.max(200, window.innerHeight * 0.55);
         setCanvasWidth(newWidth);
         setCanvasHeight(newHeight);
       }
@@ -46,30 +49,28 @@ export function DrawModule() {
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
-    addScore(2);
-    toast({ title: "Color Changed!", description: `Switched to a new color!`, className: "bg-secondary text-secondary-foreground" });
+    addVBucks(2); // Changed from addScore
+    toast({ title: "Color Changed!", description: `Switched to a new color! +2 ${CURRENCY_NAME}`, className: "bg-secondary text-secondary-foreground" });
   };
 
   const handleBrushSizeSelect = (size: number) => {
     setBrushSize(size);
-    addScore(2);
-    toast({ title: "Brush Resized!", description: `New brush size selected!`, className: "bg-accent text-accent-foreground" });
+    addVBucks(2); // Changed from addScore
+    toast({ title: "Brush Resized!", description: `New brush size selected! +2 ${CURRENCY_NAME}`, className: "bg-accent text-accent-foreground" });
   };
 
   const handleClearCanvas = () => {
     if (canvasRef.current) {
       canvasRef.current.clear();
-      addScore(10); 
-      toast({ title: "Canvas Cleared!", description: "Fresh start!", className: "bg-blue-500 text-white" });
+      addVBucks(5); // Changed from addScore
+      toast({ title: "Canvas Cleared!", description: `Fresh start! +5 ${CURRENCY_NAME}`, className: "bg-blue-500 text-white" });
     } else {
         toast({ title: "Oops!", description: "Could not clear canvas.", variant: "destructive"})
     }
   };
 
-  // Called for each segment drawn
   const handleDrawSegment = useCallback(() => {
-    // Could add very small points for each segment, but might be too noisy.
-    // The interval-based scoring for active drawing is likely better.
+    // Small reward for drawing activity can be managed by the interval timer
   }, []);
 
   const handleDrawStart = useCallback(() => {
@@ -78,7 +79,10 @@ export function DrawModule() {
 
   const handleDrawEnd = useCallback(() => {
     setIsActivelyDrawing(false);
-  }, []);
+    // Potentially award V-Bucks on draw end based on complexity or time, for now using interval.
+    addVBucks(1); // Award 1 V-Buck when a stroke is completed
+    toast({ title: "Stroke of Genius!", description: `+1 ${CURRENCY_NAME} for your art!`, className: "bg-pink-500 text-white" });
+  }, [addVBucks, toast]); // Added toast and CURRENCY_NAME
 
   useEffect(() => {
     if (isActivelyDrawing) {
@@ -86,10 +90,10 @@ export function DrawModule() {
         clearInterval(drawingActivityInterval.current);
       }
       drawingActivityInterval.current = setInterval(() => {
-        addScore(1); 
-        // Optional: Toast for passive points, can be too much, so commented out for now
-        // toast({ title: "Drawing Fun!", description: "+1 point for your masterpiece in progress!", className: "bg-purple-400 text-white" });
-      }, 5000); // Add 1 point every 5 seconds of active drawing
+        addVBucks(1); // Changed from addScore
+        // Optional: Toast for passive points, can be too much.
+        // toast({ title: "Creative Flow!", description: `+1 ${CURRENCY_NAME} for your masterpiece!`, className: "bg-purple-400 text-white" });
+      }, 10000); // Add 1 V-Buck every 10 seconds of active drawing
     } else {
       if (drawingActivityInterval.current) {
         clearInterval(drawingActivityInterval.current);
@@ -101,26 +105,26 @@ export function DrawModule() {
         clearInterval(drawingActivityInterval.current);
       }
     };
-  }, [isActivelyDrawing, addScore, toast]);
+  }, [isActivelyDrawing, addVBucks, toast]);
 
 
   return (
     <div className="flex flex-col items-center gap-8 p-4 md:p-8">
-      <h1 className="text-7xl md:text-9xl font-black my-6 tracking-tighter text-pink-500 drop-shadow-lg animate-pulse">DRAW</h1>
+      <h1 className={`text-8xl md:text-9xl font-black my-8 tracking-tighter ${DRAW_MODULE_COLOR} drop-shadow-[0_6px_8px_rgba(236,72,153,0.4)] animate-pulse`}>DRAW</h1>
       <AnimatedScoreDisplay />
 
-      <Card className="w-full max-w-5xl shadow-xl rounded-2xl">
+      <Card className="w-full max-w-5xl shadow-2xl rounded-2xl border-4 border-pink-500/50">
         <CardHeader>
-          <CardTitle className="text-3xl text-center flex items-center justify-center gap-3 font-bold">
-            <PaletteIcon className="h-10 w-10 text-pink-500" /> Your Creative Canvas
+          <CardTitle className="text-4xl text-center flex items-center justify-center gap-3 font-extrabold">
+            <PaletteIcon className={`h-12 w-12 ${DRAW_MODULE_COLOR}`} /> Your Creative Canvas
           </CardTitle>
-          <CardDescription className="text-center text-lg">
-            Pick colors, choose brush sizes, and let your imagination flow!
+          <CardDescription className="text-center text-xl font-semibold text-muted-foreground">
+            Pick colors, choose brushes, and earn {CURRENCY_NAME} for your art!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-start">
-            <div className="flex flex-col gap-6 md:w-64">
+            <div className="flex flex-col gap-6 md:w-72"> {/* Increased width for controls */}
               <ColorPalette
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
@@ -129,12 +133,32 @@ export function DrawModule() {
                 selectedBrushSize={brushSize}
                 onBrushSizeSelect={handleBrushSizeSelect}
               />
-              <Button onClick={handleClearCanvas} variant="destructive" size="lg" className="w-full">
-                <Trash2 className="mr-2 h-6 w-6" /> Clear Canvas
-              </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <Button onClick={handleClearCanvas} variant="destructive" size="lg" className="w-full">
+                  <Trash2 className="mr-2 h-6 w-6" /> Clear
+                </Button>
+                <Button 
+                  onClick={() => {
+                     if (canvasRef.current) {
+                       const dataUrl = canvasRef.current.toDataURL();
+                       const link = document.createElement('a');
+                       link.download = 'maximus-art.png';
+                       link.href = dataUrl;
+                       link.click();
+                       addVBucks(20);
+                       toast({ title: "Artwork Saved!", description: `Your masterpiece is saved! +20 ${CURRENCY_NAME}`, className: "bg-green-500 text-white"});
+                     }
+                  }} 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Save className="mr-2 h-6 w-6" /> Save
+                </Button>
+              </div>
             </div>
             
-            <div ref={drawingCanvasWrapperRef} className="flex-grow flex items-center justify-center bg-muted/30 p-1 md:p-2 rounded-2xl border-2 border-dashed border-border">
+            <div ref={drawingCanvasWrapperRef} className="flex-grow flex items-center justify-center bg-muted/20 p-2 md:p-3 rounded-2xl border-4 border-dashed border-border shadow-inner_lg">
               <DrawingCanvas
                 ref={canvasRef}
                 width={canvasWidth}
@@ -152,4 +176,10 @@ export function DrawModule() {
       </Card>
     </div>
   );
+}
+
+// Add toDataURL to DrawingCanvasHandle
+export interface DrawingCanvasHandle {
+  clear: () => void;
+  toDataURL: (type?: string, quality?: any) => string; // Added this line
 }

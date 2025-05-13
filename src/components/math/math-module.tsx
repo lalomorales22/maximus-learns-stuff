@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AnimatedScoreDisplay } from '@/components/game/animated-score-display';
 import { generateMathProblem, type MathProblem } from '@/lib/game-utils';
 import { adjustDifficulty as adjustMathDifficultyAI } from '@/ai/flows/adaptive-difficulty';
-import { CheckCircle2, XCircle, Zap, Send } from 'lucide-react';
+import { CheckCircle2, XCircle, Zap, Send, Target } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useScore } from '@/contexts/ScoreContext';
+import { CURRENCY_NAME } from '@/lib/constants';
 
 export function MathModule() {
   const [currentProblem, setCurrentProblem] = useState<MathProblem | null>(null);
@@ -22,7 +23,7 @@ export function MathModule() {
   const [incorrectStreak, setIncorrectStreak] = useState(0);
 
   const { toast } = useToast();
-  const { addScore } = useScore();
+  const { addVBucks } = useScore(); // Changed from addScore
 
   const loadNewProblem = useCallback((level: number) => {
     setCurrentProblem(generateMathProblem(level));
@@ -42,26 +43,25 @@ export function MathModule() {
     const answerNum = parseInt(userAnswer, 10);
     let newCorrectStreak = correctStreak;
     let newIncorrectStreak = incorrectStreak;
-    const pointsEarned = 10 * difficulty; // Base points
+    const vBucksEarned = 10 * difficulty; // Base V-Bucks
 
     if (answerNum === currentProblem.answer) {
-      addScore(pointsEarned);
-      setFeedback({ message: `Correct! +${pointsEarned} points!`, type: 'correct' });
+      addVBucks(vBucksEarned); // Changed from addScore
+      setFeedback({ message: `Correct! +${vBucksEarned} ${CURRENCY_NAME}!`, type: 'correct' });
       newCorrectStreak++;
       newIncorrectStreak = 0;
       toast({
-        title: "Yahoo!",
-        description: "That's the right answer! You're a math whiz!",
+        title: "Victory Royale!",
+        description: `That's the right answer! You earned ${vBucksEarned} ${CURRENCY_NAME}!`,
         variant: "default", 
         className: "bg-correct border-correct text-correct-foreground",
       });
     } else {
-      // Optional: Deduct points or give fewer points for trying. For now, no points on incorrect.
       setFeedback({ message: `Not quite! The answer was ${currentProblem.answer}. Keep going!`, type: 'incorrect' });
       newIncorrectStreak++;
       newCorrectStreak = 0;
       toast({
-        title: "Oopsie!",
+        title: "So Close!",
         description: `Keep trying! The correct answer was ${currentProblem.answer}. You'll get it next time!`,
         variant: "destructive",
       });
@@ -79,9 +79,9 @@ export function MathModule() {
       if (aiResponse.newDifficulty !== difficulty) {
         setDifficulty(aiResponse.newDifficulty);
          toast({
-            title: "Level Update!",
-            description: `Difficulty changed to ${aiResponse.newDifficulty}. ${aiResponse.reasoning}`,
-            className: "bg-blue-500 text-white border-blue-600"
+            title: "Difficulty Shift!",
+            description: `Threat Level changed to ${aiResponse.newDifficulty}. ${aiResponse.reasoning}`,
+            className: "bg-accent text-accent-foreground border-accent" // Using accent for neutral/info
         });
       } else {
         loadNewProblem(difficulty); 
@@ -90,8 +90,8 @@ export function MathModule() {
     } catch (error) {
       console.error("AI difficulty adjustment error:", error);
       toast({
-        title: "Uh Oh!",
-        description: "A little glitch! We'll stick to this level for now.",
+        title: "Storm Interference!",
+        description: "A little glitch! We'll stick to this Threat Level for now.",
         variant: "destructive",
       });
       loadNewProblem(difficulty); 
@@ -101,46 +101,48 @@ export function MathModule() {
   };
 
   if (!currentProblem) {
-    return <div className="text-center p-8 text-2xl font-semibold text-primary">Loading math adventure... <Zap className="inline-block animate-ping h-8 w-8" /></div>;
+    return <div className="text-center p-8 text-3xl font-bold text-primary">Loading Math Mission... <Zap className="inline-block animate-ping h-10 w-10" /></div>;
   }
 
   return (
     <div className="flex flex-col items-center gap-8 p-4 md:p-8">
-      <h1 className="text-7xl md:text-9xl font-black my-6 tracking-tighter text-primary drop-shadow-lg animate-bounce">MATH</h1>
+      <h1 className="text-8xl md:text-9xl font-black my-8 tracking-tighter text-primary drop-shadow-[0_6px_8px_rgba(var(--primary-rgb),0.4)] animate-bounce">MATH</h1>
       <AnimatedScoreDisplay />
 
-      <Card className="w-full max-w-lg shadow-xl rounded-2xl">
+      <Card className="w-full max-w-lg shadow-2xl rounded-2xl border-4 border-primary/50">
         <CardHeader>
-          <CardTitle className="text-3xl text-center font-bold">Solve This!</CardTitle>
-          <CardDescription className="text-center text-lg">Current Difficulty: Level {difficulty}</CardDescription>
+          <CardTitle className="text-4xl text-center font-extrabold flex items-center justify-center gap-2">
+            <Target className="h-10 w-10 text-primary"/> Solve the Equation!
+          </CardTitle>
+          <CardDescription className="text-center text-xl font-semibold text-muted-foreground">Threat Level: {difficulty}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-7xl font-bold text-center py-10 text-foreground">{currentProblem.text.replace('?', '').trim()}</p>
+          <p className="text-8xl font-bold text-center py-12 text-foreground">{currentProblem.text.replace('?', '').trim()}</p>
           <form onSubmit={handleAnswerSubmit} className="space-y-6">
             <Input
               type="number"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              placeholder="Your answer"
-              className="text-3xl h-16 text-center rounded-xl"
+              placeholder="Your Answer"
+              className="text-4xl h-20 text-center rounded-xl border-2 border-input focus:border-primary shadow-inner"
               disabled={isLoading}
               aria-label="Math problem answer"
             />
             <Button type="submit" className="w-full" disabled={isLoading} size="xl">
-              {isLoading ? 'Checking...' : 'Submit Answer'} <Send className="ml-2 h-7 w-7"/>
+              {isLoading ? 'Checking...' : 'Lock In Answer'} <Send className="ml-2 h-7 w-7"/>
             </Button>
           </form>
         </CardContent>
         {feedback && (
           <CardFooter className="mt-6">
             <div
-              className={`w-full p-4 rounded-lg text-center text-lg font-medium flex items-center justify-center gap-2
-                ${feedback.type === 'correct' ? 'bg-correct text-correct-foreground' : ''}
-                ${feedback.type === 'incorrect' ? 'bg-incorrect text-incorrect-foreground' : ''}
-                ${feedback.type === 'info' ? 'bg-blue-500 text-white' : ''}`}
+              className={`w-full p-5 rounded-lg text-center text-xl font-semibold flex items-center justify-center gap-3 shadow-md
+                ${feedback.type === 'correct' ? 'bg-correct text-correct-foreground border-2 border-green-600' : ''}
+                ${feedback.type === 'incorrect' ? 'bg-incorrect text-incorrect-foreground border-2 border-red-700' : ''}
+                ${feedback.type === 'info' ? 'bg-accent text-accent-foreground border-2 border-purple-600' : ''}`}
             >
-              {feedback.type === 'correct' && <CheckCircle2 className="h-7 w-7" />}
-              {feedback.type === 'incorrect' && <XCircle className="h-7 w-7" />}
+              {feedback.type === 'correct' && <CheckCircle2 className="h-8 w-8" />}
+              {feedback.type === 'incorrect' && <XCircle className="h-8 w-8" />}
               {feedback.message}
             </div>
           </CardFooter>

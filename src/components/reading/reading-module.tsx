@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AnimatedScoreDisplay } from '@/components/game/animated-score-display';
 import { generateReadingPassage } from '@/lib/game-utils';
 import { adjustReadingDifficulty as adjustReadingDifficultyAI } from '@/ai/flows/adaptive-reading';
-import { BookOpen, Zap, RefreshCw } from 'lucide-react';
+import { BookOpen, Zap, RefreshCw, BookMarked } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from '@/components/ui/progress';
 import { Label } from "@/components/ui/label";
 import { useScore } from '@/contexts/ScoreContext';
+import { CURRENCY_NAME } from '@/lib/constants';
 
 export function ReadingModule() {
   const [currentPassage, setCurrentPassage] = useState<string>('');
@@ -22,7 +23,7 @@ export function ReadingModule() {
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
 
   const { toast } = useToast();
-  const { addScore } = useScore();
+  const { addVBucks } = useScore(); // Changed from addScore
 
   const loadNewPassage = useCallback((level: number) => {
     setIsLoading(true); 
@@ -66,11 +67,11 @@ export function ReadingModule() {
     const simulatedCorrectAnswers = Math.round(simulatedScore / 20); 
     const simulatedTotalQuestions = 5;
 
-    const pointsEarned = Math.max(5,Math.round(simulatedScore / 10)); // Min 5 points
-    addScore(pointsEarned); 
+    const vBucksEarned = Math.max(5,Math.round(simulatedScore / 10)); // Min 5 V-Bucks
+    addVBucks(vBucksEarned); // Changed from addScore
     toast({
-        title: "Great Reading!",
-        description: `You earned ${pointsEarned} points!`,
+        title: "Quest Complete!",
+        description: `You earned ${vBucksEarned} ${CURRENCY_NAME}!`,
         className: "bg-correct border-correct text-correct-foreground"
     });
 
@@ -85,9 +86,9 @@ export function ReadingModule() {
       if (aiResponse.newLevel !== difficulty) {
         setDifficulty(aiResponse.newLevel);
         toast({
-            title: "Way to go!",
-            description: `New reading level: ${aiResponse.newLevel}! ${aiResponse.reason}`,
-            className: "bg-secondary text-secondary-foreground border-secondary-darker" 
+            title: "New Chapter!",
+            description: `New Reading Level: ${aiResponse.newLevel}! ${aiResponse.reason}`,
+            className: "bg-secondary text-secondary-foreground border-secondary" 
         });
       } else {
         loadNewPassage(difficulty);
@@ -96,7 +97,7 @@ export function ReadingModule() {
     } catch (error) {
       console.error("AI difficulty adjustment error:", error);
       toast({
-        title: "Oops!",
+        title: "Lost Signal!",
         description: "A little hiccup! We'll get a new story at this level.",
         variant: "destructive",
       });
@@ -106,49 +107,51 @@ export function ReadingModule() {
   
 
   if (!currentPassage && isLoading) { 
-    return <div className="text-center p-8 text-2xl font-semibold text-secondary">Fetching a new story... <Zap className="inline-block animate-ping h-8 w-8" /></div>;
+    return <div className="text-center p-8 text-3xl font-bold text-secondary">Loading new lore... <Zap className="inline-block animate-ping h-10 w-10" /></div>;
   }
    if (!currentPassage && !isLoading && passagesRead === 0) { 
-    return <div className="text-center p-8 text-2xl font-semibold text-secondary">Getting ready to read... <Zap className="inline-block animate-ping h-8 w-8" /></div>;
+    return <div className="text-center p-8 text-3xl font-bold text-secondary">Preparing Reading Quest... <Zap className="inline-block animate-ping h-10 w-10" /></div>;
   }
 
   const progressValue = comprehensionTime !== null ? (comprehensionTime / (30 + difficulty * 5)) * 100 : 0; 
 
   return (
     <div className="flex flex-col items-center gap-8 p-4 md:p-8">
-      <h1 className="text-7xl md:text-9xl font-black my-6 tracking-tighter text-secondary drop-shadow-lg animate-pulse">READ</h1>
+      <h1 className="text-8xl md:text-9xl font-black my-8 tracking-tighter text-secondary drop-shadow-[0_6px_8px_rgba(var(--secondary-rgb),0.4)] animate-pulse">READ</h1>
       <AnimatedScoreDisplay />
 
-      <Card className="w-full max-w-3xl shadow-xl rounded-2xl">
+      <Card className="w-full max-w-3xl shadow-2xl rounded-2xl border-4 border-secondary/50">
         <CardHeader>
-          <CardTitle className="text-3xl text-center flex items-center justify-center gap-3 font-bold"><BookOpen className="h-10 w-10"/> Read Aloud!</CardTitle>
-          <CardDescription className="text-center text-lg">Current Reading Level: {difficulty}</CardDescription>
+          <CardTitle className="text-4xl text-center flex items-center justify-center gap-3 font-extrabold">
+            <BookMarked className="h-12 w-12 text-secondary"/> Read the Lore!
+            </CardTitle>
+          <CardDescription className="text-center text-xl font-semibold text-muted-foreground">Current Reading Level: {difficulty}</CardDescription>
         </CardHeader>
         <CardContent className="min-h-[250px]">
           {isLoading ? (
             <div className="text-center py-12">
-              <RefreshCw className="h-12 w-12 animate-spin mx-auto text-secondary" />
-              <p className="mt-4 text-muted-foreground text-xl">Loading new story...</p>
+              <RefreshCw className="h-14 w-14 animate-spin mx-auto text-secondary" />
+              <p className="mt-4 text-muted-foreground text-2xl">Fetching new intel...</p>
             </div>
           ) : (
-            <p className="text-2xl md:text-3xl leading-relaxed md:leading-loose text-foreground whitespace-pre-line py-6 px-4 bg-background rounded-xl border-2 border-border shadow-inner">
+            <p className="text-3xl md:text-4xl leading-relaxed md:leading-loose text-foreground whitespace-pre-line py-8 px-6 bg-card rounded-xl border-2 border-border shadow-inner">
               {currentPassage}
             </p>
           )}
           {comprehensionTime !== null && !isLoading && (
             <div className="mt-6">
-              <Label htmlFor="reading-time" className="text-md text-muted-foreground font-semibold">Reading time progress...</Label>
-              <Progress id="reading-time" value={progressValue} className="w-full h-3 mt-2 rounded-lg" />
+              <Label htmlFor="reading-time" className="text-lg text-muted-foreground font-semibold">Comprehension Timer...</Label>
+              <Progress id="reading-time" value={progressValue} className="w-full h-4 mt-2 rounded-lg border border-muted shadow-sm" />
             </div>
           )}
         </CardContent>
         <CardFooter>
           <Button onClick={handleNextPassage} className="w-full" disabled={isLoading} size="xl" variant="secondary">
-            {isLoading ? 'Loading...' : 'Next Story'} <RefreshCw className={`ml-3 h-7 w-7 ${isLoading ? 'animate-spin' : ''}`}/>
+            {isLoading ? 'Loading...' : 'Next Chapter'} <RefreshCw className={`ml-3 h-7 w-7 ${isLoading ? 'animate-spin' : ''}`}/>
           </Button>
         </CardFooter>
       </Card>
-       <p className="text-md text-muted-foreground mt-6 font-medium">Stories read this session: {passagesRead > 0 ? passagesRead : 0}</p>
+       <p className="text-lg text-muted-foreground mt-6 font-medium">Quests completed this session: {passagesRead > 0 ? passagesRead : 0}</p>
     </div>
   );
 }

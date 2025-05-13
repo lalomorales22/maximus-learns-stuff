@@ -3,37 +3,40 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-
-const XP_PER_LEVEL = 100;
+import { VBUCKS_PER_TIER, CURRENCY_NAME, LEVEL_NAME_SINGULAR } from '@/lib/constants';
 
 interface ScoreContextState {
-  totalScore: number;
-  level: number;
-  xpInLevel: number;
-  xpForNextLevel: number;
-  addScore: (points: number) => void;
+  totalVBucks: number; // Renamed from totalScore
+  tier: number; // Renamed from level
+  vBucksInTier: number; // Renamed from xpInLevel
+  vBucksForNextTier: number; // Renamed from xpForNextLevel
+  addVBucks: (points: number) => void; // Renamed from addScore
+  currencyName: string;
+  levelName: string;
 }
 
 const ScoreContext = createContext<ScoreContextState | undefined>(undefined);
 
 export function ScoreProvider({ children }: { children: ReactNode }) {
-  const [totalScore, setTotalScore] = useState(0);
+  const [totalVBucks, setTotalVBucks] = useState(0);
 
-  const addScore = useCallback((points: number) => {
-    setTotalScore((prevScore) => prevScore + points);
+  const addVBucks = useCallback((points: number) => {
+    setTotalVBucks((prevVBucks) => prevVBucks + points);
   }, []);
 
   const contextValue = useMemo(() => {
-    const level = Math.floor(totalScore / XP_PER_LEVEL) + 1;
-    const xpInLevel = totalScore % XP_PER_LEVEL;
+    const currentTier = Math.floor(totalVBucks / VBUCKS_PER_TIER) + 1;
+    const currentVBucksInTier = totalVBucks % VBUCKS_PER_TIER;
     return {
-      totalScore,
-      level,
-      xpInLevel,
-      xpForNextLevel: XP_PER_LEVEL,
-      addScore,
+      totalVBucks,
+      tier: currentTier,
+      vBucksInTier: currentVBucksInTier,
+      vBucksForNextTier: VBUCKS_PER_TIER,
+      addVBucks,
+      currencyName: CURRENCY_NAME,
+      levelName: LEVEL_NAME_SINGULAR,
     };
-  }, [totalScore, addScore]);
+  }, [totalVBucks, addVBucks]);
 
   return (
     <ScoreContext.Provider value={contextValue}>

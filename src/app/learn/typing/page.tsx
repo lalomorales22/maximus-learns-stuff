@@ -1,10 +1,11 @@
+
 import { TypingModule } from '@/components/typing/typing-module';
 import type { Metadata } from 'next';
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, MODULE_DATA } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: `Typing Titans - ${APP_NAME}`,
-  description: 'Practice your typing skills and become a keyboard master!',
+  title: `${MODULE_DATA.typing.name} - ${APP_NAME}`,
+  description: `${MODULE_DATA.typing.description}`,
 };
 
 export default function TypingPage() {

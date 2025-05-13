@@ -1,10 +1,11 @@
+
 import { DrawModule } from '@/components/draw/draw-module';
 import type { Metadata } from 'next';
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, MODULE_DATA } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: `Drawing Pad - ${APP_NAME}`,
-  description: 'Unleash your creativity and draw colorful masterpieces!',
+  title: `${MODULE_DATA.draw.name} - ${APP_NAME}`,
+  description: `${MODULE_DATA.draw.description}`,
 };
 
 export default function DrawPage() {

@@ -1,3 +1,4 @@
+
 // src/components/draw/drawing-canvas.tsx
 "use client";
 
@@ -6,6 +7,7 @@ import { cn } from '@/lib/utils';
 
 export interface DrawingCanvasHandle {
   clear: () => void;
+  toDataURL: (type?: string, quality?: any) => string;
 }
 
 interface DrawingCanvasProps {
@@ -35,10 +37,9 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
 
   const clearCanvas = useCallback(() => {
     if (context) {
-      context.fillStyle = 'white';
+      context.fillStyle = 'white'; // Ensure background is white for saved images
       context.fillRect(0, 0, width, height);
     } else if (canvasRef.current) {
-      // Fallback if context might not be set yet but canvas element exists
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
         ctx.fillStyle = 'white';
@@ -47,8 +48,17 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
     }
   }, [context, width, height]);
 
+  const toDataURL = useCallback((type?: string, quality?: any): string => {
+    if (canvasRef.current) {
+      return canvasRef.current.toDataURL(type, quality);
+    }
+    return ''; // Should not happen if canvas is rendered
+  }, []);
+
+
   useImperativeHandle(ref, () => ({
     clear: clearCanvas,
+    toDataURL: toDataURL,
   }));
 
   useEffect(() => {
@@ -57,7 +67,6 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       const ctx = canvas.getContext('2d');
       if (ctx) {
         setContext(ctx);
-        // Initialize canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, width, height);
       }
@@ -78,7 +87,6 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     if ('touches' in event) {
-      // Check if touches array is empty
       if (event.touches.length === 0) return null;
       return {
         x: event.touches[0].clientX - rect.left,
@@ -102,7 +110,6 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
 
   const draw = useCallback((event: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || !context) return;
-    // Prevent default scroll behavior on touch devices during draw
     if (event.cancelable && 'touches' in event) {
         event.preventDefault();
     }
@@ -130,13 +137,13 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       onMouseUp={stopDrawing}
       onMouseLeave={stopDrawing}
       onTouchStart={(e) => {
-        if (e.cancelable) e.preventDefault(); // Prevent scrolling when touch starts on canvas
+        if (e.cancelable) e.preventDefault(); 
         startDrawing(e);
       }}
       onTouchMove={draw}
       onTouchEnd={stopDrawing}
       className={cn("border-4 border-primary rounded-2xl shadow-lg bg-white cursor-crosshair", className)}
-      style={{ touchAction: 'none' }} // Explicitly disable browser touch actions
+      style={{ touchAction: 'none' }} 
     />
   );
 });

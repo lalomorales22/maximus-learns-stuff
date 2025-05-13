@@ -1,7 +1,8 @@
+
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, CURRENCY_NAME } from '@/lib/constants'; // Import CURRENCY_NAME
 import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: APP_NAME,
-  description: 'A fun learning app for Maximus, built with Next.js and AI.',
+  title: `${APP_NAME} - Win ${CURRENCY_NAME}!`, // Updated title
+  description: `Join ${APP_NAME} on epic missions to learn Math, Reading, Typing, and Drawing to earn ${CURRENCY_NAME}!`, // Updated description
 };
 
 export default function RootLayout({

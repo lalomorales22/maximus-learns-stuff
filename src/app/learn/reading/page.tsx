@@ -1,10 +1,11 @@
+
 import { ReadingModule } from '@/components/reading/reading-module';
 import type { Metadata } from 'next';
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, MODULE_DATA } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: `Reading Realm - ${APP_NAME}`,
-  description: 'Explore exciting stories and improve your reading comprehension!',
+  title: `${MODULE_DATA.reading.name} - ${APP_NAME}`,
+  description: `${MODULE_DATA.reading.description}`,
 };
 
 export default function ReadingPage() {
