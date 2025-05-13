@@ -17,7 +17,7 @@ export default function HomePage() {
               layout="fill"
               objectFit="cover"
               priority
-              data-ai-hint="epic gaming adventure" // Updated AI hint
+              data-ai-hint="victory royale celebration" // Updated AI hint
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col items-center justify-center p-8">
               <h1 className="text-7xl md:text-9xl font-black mb-6 animate-fade-in-down text-primary-foreground drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]">
@@ -43,3 +43,4 @@ export default function HomePage() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -40,9 +41,17 @@ export default {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
-        pink: { // Added for Draw module
-          '500': '#ec4899', // Example pink color
+        pink: { 
+          '500': '#ec4899',
           '600': '#db2777',
+        },
+        green: { // Added for Coding module
+          '500': '#22c55e', // Tailwind green-500
+          '600': '#16a34a', // Tailwind green-600
+        },
+        yellow: { // Added for Being Nice module
+          '500': '#eab308', // Tailwind yellow-500
+          '600': '#ca8a04', // Tailwind yellow-600
         },
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
@@ -96,3 +105,4 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+

@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -11,14 +12,37 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module }: ModuleCardProps) {
   let buttonVariant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link" = "default";
+  let customButtonStyle: React.CSSProperties = {};
+
+  // Determine button variant or custom style based on module path or themeColor
   if (module.path.includes('math')) {
-    buttonVariant = 'default';
+    buttonVariant = 'default'; // Primary
   } else if (module.path.includes('reading')) {
-    buttonVariant = 'secondary';
+    buttonVariant = 'secondary'; // Accent color for reading in theme
   } else if (module.path.includes('typing')) {
-    buttonVariant = 'default'; // Or another variant like 'accent' if defined
+    buttonVariant = 'default'; // Default often maps to primary or a distinct button color
+                               // if secondary used for reading, default might be primary or accent
+                               // let's assume secondary is for orange, accent for purple, primary for blue
+                               // So typing could use accent (purple)
+    customButtonStyle = { backgroundColor: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))' }; // if accent is purple
   } else if (module.path.includes('draw')) {
-    buttonVariant = 'default'; // Default for draw, can be customized
+    if (module.themeColor === 'bg-pink-500') { // pink
+      customButtonStyle = { backgroundColor: '#ec4899', borderColor: '#db2777' };
+    } else {
+      buttonVariant = 'default';
+    }
+  } else if (module.path.includes('coding')) {
+     if (module.themeColor === 'bg-green-500') { // green
+      customButtonStyle = { backgroundColor: '#22c55e', borderColor: '#16a34a' };
+    } else {
+      buttonVariant = 'default';
+    }
+  } else if (module.path.includes('being-nice')) {
+    if (module.themeColor === 'bg-yellow-500') { // yellow
+      customButtonStyle = { backgroundColor: '#eab308', borderColor: '#ca8a04', color: 'hsl(var(--primary-foreground))' }; // Added text color for yellow
+    } else {
+      buttonVariant = 'default';
+    }
   }
 
 
@@ -45,10 +69,8 @@ export function ModuleCard({ module }: ModuleCardProps) {
           asChild 
           size="lg"
           className="w-full mt-auto"
-          // Use explicit button variant or a custom style if themeColor should directly influence button
-          // For pink-500, we might need a custom button style or use 'default' if primary is acceptable
-          style={module.themeColor === 'bg-pink-500' ? { backgroundColor: '#ec4899', borderColor: '#db2777' } : {}}
-          variant={buttonVariant}
+          style={customButtonStyle} // Apply custom styles
+          variant={Object.keys(customButtonStyle).length > 0 ? 'default' : buttonVariant} // Use default variant if custom styles are applied, otherwise specific variant
         >
           <Link href={module.path}>
             Start Learning <ArrowRight className="ml-2 h-6 w-6" />
@@ -58,3 +80,4 @@ export function ModuleCard({ module }: ModuleCardProps) {
     </Card>
   );
 }
+
