@@ -32,22 +32,18 @@ export function DrawModule() {
 
   const drawingActivityInterval = useRef<NodeJS.Timeout | null>(null);
   const [isActivelyDrawing, setIsActivelyDrawing] = useState(false);
+  const [artStrokeCounter, setArtStrokeCounter] = useState(0); // Counter for draw strokes
 
   const updateSize = useCallback(() => {
     if (drawingCanvasWrapperRef.current) {
       const wrapper = drawingCanvasWrapperRef.current;
-      const canvasOwnBorderHorizontal = 8; // px, for canvas's border-4 (4px left + 4px right)
-      const canvasOwnBorderVertical = 8;   // px, for canvas's border-4 (4px top + 4px bottom)
+      const canvasOwnBorderHorizontal = 8; 
+      const canvasOwnBorderVertical = 8;   
 
-      // Calculate the drawing area width. It should fit within the wrapper's clientWidth.
       let newCanvasDrawingWidth = wrapper.clientWidth - canvasOwnBorderHorizontal;
-      // Ensure a minimal drawing width (e.g., 50px), otherwise it might become negative or too small.
       newCanvasDrawingWidth = Math.max(50, newCanvasDrawingWidth); 
 
-      // Calculate the drawing area height.
-      // Use 55% of window height as a base for the drawing area, then ensure a minimum.
       let newCanvasDrawingHeight = (window.innerHeight * 0.55);
-      // Ensure a minimal drawing height (e.g., 50px) for the drawing area itself.
       newCanvasDrawingHeight = Math.max(50, newCanvasDrawingHeight); 
 
       setCanvasWidth(newCanvasDrawingWidth);
@@ -56,7 +52,7 @@ export function DrawModule() {
   }, []);
 
   useEffect(() => {
-    updateSize(); // Call once on mount
+    updateSize(); 
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, [updateSize]);
@@ -84,7 +80,7 @@ export function DrawModule() {
   };
 
   const handleDrawSegment = useCallback(() => {
-    // Small reward for drawing activity can be managed by the interval timer
+    // This callback is for continuous drawing feedback if needed, currently not resulting in V-Bucks per segment
   }, []);
 
   const handleDrawStart = useCallback(() => {
@@ -93,8 +89,19 @@ export function DrawModule() {
 
   const handleDrawEnd = useCallback(() => {
     setIsActivelyDrawing(false);
-    addVBucks(1);
-    toast({ title: "Stroke of Genius!", description: `+1 ${CURRENCY_NAME} for your art!`, className: "bg-pink-500 text-white" });
+    addVBucks(1); // User earns 1 V-Buck per stroke
+
+    setArtStrokeCounter(prevCounter => {
+      const newCounter = prevCounter + 1;
+      if (newCounter % 50 === 0) { // Show toast every 50 strokes
+        toast({ 
+          title: "Stroke of Genius!", 
+          description: `+1 ${CURRENCY_NAME} for your art! Keep up the great work!`, 
+          className: "bg-pink-500 text-white" 
+        });
+      }
+      return newCounter;
+    });
   }, [addVBucks, toast]);
 
   useEffect(() => {
@@ -103,8 +110,9 @@ export function DrawModule() {
         clearInterval(drawingActivityInterval.current);
       }
       drawingActivityInterval.current = setInterval(() => {
-        addVBucks(1);
-      }, 10000);
+        addVBucks(1); // Earn 1 V-Buck every 10 seconds of active drawing
+        // No toast here to avoid spamming, user gets V-Bucks silently for sustained activity
+      }, 10000); 
     } else {
       if (drawingActivityInterval.current) {
         clearInterval(drawingActivityInterval.current);
@@ -116,7 +124,7 @@ export function DrawModule() {
         clearInterval(drawingActivityInterval.current);
       }
     };
-  }, [isActivelyDrawing, addVBucks, toast]);
+  }, [isActivelyDrawing, addVBucks]);
 
 
   return (
@@ -169,7 +177,7 @@ export function DrawModule() {
               </div>
             </div>
             
-            <div ref={drawingCanvasWrapperRef} className="flex-grow flex items-center justify-center bg-muted/20 p-2 md:p-3 rounded-2xl border-4 border-dashed border-border shadow-inner_lg overflow-hidden"> {/* Added overflow-hidden */}
+            <div ref={drawingCanvasWrapperRef} className="flex-grow flex items-center justify-center bg-muted/20 p-2 md:p-3 rounded-2xl border-4 border-dashed border-border shadow-inner_lg overflow-hidden">
               <DrawingCanvas
                 ref={canvasRef}
                 width={canvasWidth}
