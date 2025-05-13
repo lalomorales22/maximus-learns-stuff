@@ -9,60 +9,74 @@ import { AnimatedScoreDisplay } from '@/components/game/animated-score-display';
 import { DrawingCanvas, type DrawingCanvasHandle } from './drawing-canvas';
 import { ColorPalette } from './color-palette';
 import { BrushSelector } from './brush-selector';
-import { Trash2, Palette as PaletteIcon, Save } from 'lucide-react'; // Added Save icon
+import { Trash2, Palette as PaletteIcon, Save } from 'lucide-react';
 import { useScore } from '@/contexts/ScoreContext';
 import { useToast } from '@/hooks/use-toast';
 import { CURRENCY_NAME } from '@/lib/constants';
 
 const DEFAULT_COLOR = '#000000'; // Black
 const DEFAULT_BRUSH_SIZE = 5;
-const DRAW_MODULE_COLOR = "text-pink-500"; // Specific color for Draw module from constants or globals
+const DRAW_MODULE_COLOR = "text-pink-500";
 
 export function DrawModule() {
   const [selectedColor, setSelectedColor] = useState<string>(DEFAULT_COLOR);
   const [brushSize, setBrushSize] = useState<number>(DEFAULT_BRUSH_SIZE);
-  const [canvasWidth, setCanvasWidth] = useState(800); 
-  const [canvasHeight, setCanvasHeight] = useState(600); 
+  const [canvasWidth, setCanvasWidth] = useState(300); // Initial default
+  const [canvasHeight, setCanvasHeight] = useState(200); // Initial default
   
   const canvasRef = useRef<DrawingCanvasHandle>(null);
   const drawingCanvasWrapperRef = useRef<HTMLDivElement>(null);
 
-  const { addVBucks } = useScore(); // Changed from addScore
+  const { addVBucks } = useScore();
   const { toast } = useToast();
 
   const drawingActivityInterval = useRef<NodeJS.Timeout | null>(null);
   const [isActivelyDrawing, setIsActivelyDrawing] = useState(false);
 
+  const updateSize = useCallback(() => {
+    if (drawingCanvasWrapperRef.current) {
+      const wrapper = drawingCanvasWrapperRef.current;
+      const canvasOwnBorderHorizontal = 8; // px, for canvas's border-4 (4px left + 4px right)
+      const canvasOwnBorderVertical = 8;   // px, for canvas's border-4 (4px top + 4px bottom)
+
+      // Calculate the drawing area width. It should fit within the wrapper's clientWidth.
+      let newCanvasDrawingWidth = wrapper.clientWidth - canvasOwnBorderHorizontal;
+      // Ensure a minimal drawing width (e.g., 50px), otherwise it might become negative or too small.
+      newCanvasDrawingWidth = Math.max(50, newCanvasDrawingWidth); 
+
+      // Calculate the drawing area height.
+      // Use 55% of window height as a base for the drawing area, then ensure a minimum.
+      let newCanvasDrawingHeight = (window.innerHeight * 0.55);
+      // Ensure a minimal drawing height (e.g., 50px) for the drawing area itself.
+      newCanvasDrawingHeight = Math.max(50, newCanvasDrawingHeight); 
+
+      setCanvasWidth(newCanvasDrawingWidth);
+      setCanvasHeight(newCanvasDrawingHeight);
+    }
+  }, []);
+
   useEffect(() => {
-    const updateSize = () => {
-      if (drawingCanvasWrapperRef.current) {
-        const newWidth = Math.max(300, drawingCanvasWrapperRef.current.offsetWidth - 20);
-        const newHeight = Math.max(200, window.innerHeight * 0.55);
-        setCanvasWidth(newWidth);
-        setCanvasHeight(newHeight);
-      }
-    };
-    updateSize();
+    updateSize(); // Call once on mount
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
-  }, []);
+  }, [updateSize]);
 
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
-    addVBucks(2); // Changed from addScore
+    addVBucks(2);
     toast({ title: "Color Changed!", description: `Switched to a new color! +2 ${CURRENCY_NAME}`, className: "bg-secondary text-secondary-foreground" });
   };
 
   const handleBrushSizeSelect = (size: number) => {
     setBrushSize(size);
-    addVBucks(2); // Changed from addScore
+    addVBucks(2);
     toast({ title: "Brush Resized!", description: `New brush size selected! +2 ${CURRENCY_NAME}`, className: "bg-accent text-accent-foreground" });
   };
 
   const handleClearCanvas = () => {
     if (canvasRef.current) {
       canvasRef.current.clear();
-      addVBucks(5); // Changed from addScore
+      addVBucks(5);
       toast({ title: "Canvas Cleared!", description: `Fresh start! +5 ${CURRENCY_NAME}`, className: "bg-blue-500 text-white" });
     } else {
         toast({ title: "Oops!", description: "Could not clear canvas.", variant: "destructive"})
@@ -79,10 +93,9 @@ export function DrawModule() {
 
   const handleDrawEnd = useCallback(() => {
     setIsActivelyDrawing(false);
-    // Potentially award V-Bucks on draw end based on complexity or time, for now using interval.
-    addVBucks(1); // Award 1 V-Buck when a stroke is completed
+    addVBucks(1);
     toast({ title: "Stroke of Genius!", description: `+1 ${CURRENCY_NAME} for your art!`, className: "bg-pink-500 text-white" });
-  }, [addVBucks, toast]); // Added toast and CURRENCY_NAME
+  }, [addVBucks, toast]);
 
   useEffect(() => {
     if (isActivelyDrawing) {
@@ -90,10 +103,8 @@ export function DrawModule() {
         clearInterval(drawingActivityInterval.current);
       }
       drawingActivityInterval.current = setInterval(() => {
-        addVBucks(1); // Changed from addScore
-        // Optional: Toast for passive points, can be too much.
-        // toast({ title: "Creative Flow!", description: `+1 ${CURRENCY_NAME} for your masterpiece!`, className: "bg-purple-400 text-white" });
-      }, 10000); // Add 1 V-Buck every 10 seconds of active drawing
+        addVBucks(1);
+      }, 10000);
     } else {
       if (drawingActivityInterval.current) {
         clearInterval(drawingActivityInterval.current);
@@ -124,7 +135,7 @@ export function DrawModule() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-start">
-            <div className="flex flex-col gap-6 md:w-72"> {/* Increased width for controls */}
+            <div className="flex flex-col gap-6 md:w-72">
               <ColorPalette
                 selectedColor={selectedColor}
                 onColorSelect={handleColorSelect}
@@ -158,7 +169,7 @@ export function DrawModule() {
               </div>
             </div>
             
-            <div ref={drawingCanvasWrapperRef} className="flex-grow flex items-center justify-center bg-muted/20 p-2 md:p-3 rounded-2xl border-4 border-dashed border-border shadow-inner_lg">
+            <div ref={drawingCanvasWrapperRef} className="flex-grow flex items-center justify-center bg-muted/20 p-2 md:p-3 rounded-2xl border-4 border-dashed border-border shadow-inner_lg overflow-hidden"> {/* Added overflow-hidden */}
               <DrawingCanvas
                 ref={canvasRef}
                 width={canvasWidth}
@@ -181,5 +192,6 @@ export function DrawModule() {
 // Add toDataURL to DrawingCanvasHandle
 export interface DrawingCanvasHandle {
   clear: () => void;
-  toDataURL: (type?: string, quality?: any) => string; // Added this line
+  toDataURL: (type?: string, quality?: any) => string;
 }
+
