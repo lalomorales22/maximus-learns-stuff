@@ -3,6 +3,7 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { ModuleCard } from '@/components/game/module-card';
 import { ALL_MODULES, APP_NAME, CURRENCY_NAME } from '@/lib/constants';
 import Image from 'next/image';
+import maximusHeroImage from '@/app/learn/images/maximus.png'; // Import the local image
 
 export default function HomePage() {
   return (
@@ -12,11 +13,12 @@ export default function HomePage() {
         <section className="container mx-auto py-12 px-4 text-center">
            <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl mb-16">
             <Image
-              src="/images/maximus.png" 
+              src={maximusHeroImage} // Use imported image
               alt="Maximus - Epic gaming adventure"
               layout="fill"
               objectFit="cover"
               priority
+              placeholder="blur" // Optional: add blur placeholder
               data-ai-hint="victory royale celebration" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col items-center justify-center p-8">
